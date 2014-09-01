@@ -1,4 +1,4 @@
-package twiliogo
+package client
 
 import (
 	// "errors"
@@ -50,6 +50,12 @@ func (t *TwilioClient) SearchNumbers(client http.Client, areaCode string, result
 	if clientError != nil {
 		err = clientError
 	} else {
+
+		numResults := len(response.AvailableNumbers)
+		if numResults < results {
+			results = numResults
+		}
+
 		numbers = response.AvailableNumbers[0:results]
 	}
 
