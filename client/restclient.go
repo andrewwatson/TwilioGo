@@ -26,7 +26,7 @@ func NewTwilioClient(account, token string) *TwilioClient {
 
 // Takes an http.Client as an agrument because AppEngine makes you use their URL fetcher instead of
 // the normal http.Client
-func (t *TwilioClient) SearchNumbers(client http.Client, areaCode string) (numbers []structs.AvailablePhoneNumber, err error) {
+func (t *TwilioClient) SearchNumbers(client http.Client, areaCode string, results int) (numbers []structs.AvailablePhoneNumber, err error) {
 
 	twilioUrl := fmt.Sprintf(
 		"https://api.twilio.com/2010-04-01/Accounts/%s/AvailablePhoneNumbers/US/Local.json?AreaCode=%s",
@@ -51,7 +51,7 @@ func (t *TwilioClient) SearchNumbers(client http.Client, areaCode string) (numbe
 		fmt.Printf("ERR %#v\n", clientError)
 	}
 
-	numbers = response.AvailableNumbers
+	numbers = response.AvailableNumbers[0:results]
 
 	return
 }
