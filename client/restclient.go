@@ -48,12 +48,46 @@ func (t *TwilioClient) SearchNumbers(client http.Client, areaCode string, result
 	json.NewDecoder(resp.Body).Decode(&response)
 
 	if clientError != nil {
-		fmt.Printf("ERR %#v\n", clientError)
+		err = clientError
+	} else {
+		numbers = response.AvailableNumbers[0:results]
 	}
 
-	numbers = response.AvailableNumbers[0:results]
-
 	return
+}
+
+func (t *TwilioClient) SendMessage(client http.Client, toNumber, fromNumber, message string) (err error) {
+
+	data := url.Values{}
+	data.Add("From", fromNumber)
+	data.Add("To", toNumber)
+	data.Add("Body", message)
+
+	twilioUrl := fmt.Sprintf(
+		"https://api.twilio.com/2010-04-01/Accounts/%s/Messages.json",
+		t.AccountSid,
+	)
+
+	twilioRequest, err := http.NewRequest(
+		"POST",
+		twilioUrl,
+		strings.NewReader(data.Encode()),
+	)
+
+	if err != nil {
+		fmt.Printf("ERR %#v", err)
+	}
+
+	twilioRequest.SetBasicAuth(t.AccountSid, t.AuthToken)
+	twilioRequest.Header.Add("Content-type", "application/x-www-form-urlencoded")
+	resp, clientError := client.Do(twilioRequest)
+	defer resp.Body.Close()
+
+	if resp.StatusCode > 299 {
+		fmt.Printf("ERROR: %d", resp.StatusCode)
+	}
+
+	return clientError
 }
 
 func (t *TwilioClient) PurchaseNumber(client http.Client, phonenumber string) (number structs.PhoneNumber) {
@@ -61,7 +95,7 @@ func (t *TwilioClient) PurchaseNumber(client http.Client, phonenumber string) (n
 	data := url.Values{}
 	data.Add("PhoneNumber", phonenumber)
 
-	fmt.Printf("DATA %#v\n", data)
+	// fmt.Printf("DATA %#v\n", data)
 
 	twilioUrl := fmt.Sprintf(
 		"https://api.twilio.com/2010-04-01/Accounts/%s/IncomingPhoneNumbers.json",
