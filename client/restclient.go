@@ -1,13 +1,13 @@
 package client
 
 import (
-	// "errors"
+	"errors"
 	// "appengine"
 	// "appengine/urlfetch"
 	"encoding/json"
 	"fmt"
 	"github.com/andrewwatson/TwilioGo/structs"
-	ioutil "io/ioutil"
+	// ioutil "io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
@@ -90,16 +90,18 @@ func (t *TwilioClient) SendMessage(client http.Client, toNumber, fromNumber, mes
 	defer resp.Body.Close()
 
 	if resp.StatusCode > 299 {
-		fmt.Printf("ERROR: %d", resp.StatusCode)
+		err = errors.New(fmt.Sprintf("TWILIO ERROR: %d", resp.StatusCode))
+		// fmt.Printf("ERROR: %d", resp.StatusCode)
 	}
 
 	return clientError
 }
 
-func (t *TwilioClient) PurchaseNumber(client http.Client, phonenumber string) (number structs.PhoneNumber) {
+func (t *TwilioClient) PurchaseNumber(client http.Client, phonenumber string, messageurl string) (number structs.PhoneNumber, err error) {
 
 	data := url.Values{}
 	data.Add("PhoneNumber", phonenumber)
+	data.Add("SmsUrl", messageurl)
 
 	// fmt.Printf("DATA %#v\n", data)
 
@@ -130,10 +132,10 @@ func (t *TwilioClient) PurchaseNumber(client http.Client, phonenumber string) (n
 	response := new(structs.PhoneNumber)
 	json.NewDecoder(resp.Body).Decode(&response)
 
-	rawBody, _ := ioutil.ReadAll(resp.Body)
-	fmt.Printf("RAW: %#v\n", rawBody)
+	// rawBody, _ := ioutil.ReadAll(resp.Body)
+	// fmt.Printf("RAW: %#v\n", rawBody)
 
-	fmt.Printf("RESP %#v\n", response)
+	// fmt.Printf("RESP %#v\n", response)
 
 	if clientError != nil {
 		fmt.Printf("ERR %#v\n", clientError)
